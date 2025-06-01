@@ -31,7 +31,7 @@ function MyReservations() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.put(`http://localhost:5000/api/reservations/${id}`, { status: 'declined' });
+          await axios.put(`http://localhost:5000/api/reservations/${id}/status`, { status: 'declined' });
 
           const response = await axios.get('http://localhost:5000/api/reservations');
           setReservations(response.data);

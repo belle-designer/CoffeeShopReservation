@@ -120,10 +120,10 @@ app.post('/api/reservations', (req, res) => {
 
 // Get all reservations
 app.get('/api/reservations', (req, res) => {
-  const sql = 'SELECT * FROM reservations ORDER BY date ASC, time ASC';
+  const sql = 'SELECT * FROM reservations ORDER BY date ASC';
   db.query(sql, (err, results) => {
     if (err) {
-      console.error('Error fetching reservations:', err);
+      console.error('Error fetching reservations:', err.message);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
     res.json(results);
