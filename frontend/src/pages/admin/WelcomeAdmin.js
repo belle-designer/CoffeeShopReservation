@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import {
   BarChart,
   Bar,
@@ -13,27 +14,31 @@ import {
 } from "recharts";
 
 function WelcomeAdmin() {
-  const reservationsData = [
-    { day: "Mon", reservations: 12 },
-    { day: "Tue", reservations: 18 },
-    { day: "Wed", reservations: 10 },
-    { day: "Thu", reservations: 22 },
-    { day: "Fri", reservations: 28 },
-    { day: "Sat", reservations: 35 },
-    { day: "Sun", reservations: 20 },
-  ];
+  const [summary, setSummary] = useState({
+    totalReservations: 0,
+    pendingApprovals: 0,
+    registeredUsers: 0,
+    revenue: 0,
+    weeklyReservations: [],
+    statusBreakdown: [],
+  });
 
-  const statusData = [
-    { name: "Confirmed", value: 70 },
-    { name: "Pending", value: 20 },
-    { name: "Cancelled", value: 10 },
-  ];
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/admin/dashboard-summary")
+      .then((res) => {
+        setSummary(res.data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch summary:", err);
+      });
+  }, []);
 
   const COLORS = ["#000000", "#888888", "#cccccc"];
 
   return (
     <div className="text-center mt-10 px-4 max-w-7xl mx-auto font-lexend">
-      <h1 className="text-5xl font-bold text-black mb-6">WELCOME, ADMIN! </h1>
+      <h1 className="text-5xl font-bold text-black mb-6">WELCOME, ADMIN!</h1>
       <p className="text-gray-700 max-w-3xl mx-auto leading-relaxed text-lg mb-8">
         This is your dashboard overview. From here, you can manage user reservations,
         view analytics, and handle administrative tasks for{" "}
@@ -42,14 +47,14 @@ function WelcomeAdmin() {
 
       {/* Analytics Overview */}
       <div className="w-full px-4 py-8 text-black mb-10">
-
-        {/* Charts side-by-side on md+ screens, stacked on small screens */}
         <div className="flex flex-col md:flex-row md:space-x-12 space-y-12 md:space-y-0 justify-center items-center">
           {/* Bar Chart */}
           <div className="w-full md:w-1/2">
-            <h3 className="text-xl font-semibold mb-4 text-center md:text-left">Reservations Last 7 Days</h3>
+            <h3 className="text-xl font-semibold mb-4 text-center md:text-left">
+              Reservations Last 7 Days
+            </h3>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={reservationsData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <BarChart data={summary.weeklyReservations} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <XAxis dataKey="day" stroke="#000" />
                 <YAxis stroke="#000" />
                 <Tooltip
@@ -63,11 +68,13 @@ function WelcomeAdmin() {
 
           {/* Pie Chart */}
           <div className="w-full md:w-1/2">
-            <h3 className="text-xl font-semibold mb-4 text-center md:text-left">Reservation Status Breakdown</h3>
+            <h3 className="text-xl font-semibold mb-4 text-center md:text-left">
+              Reservation Status Breakdown
+            </h3>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
-                  data={statusData}
+                  data={summary.statusBreakdown}
                   dataKey="value"
                   nameKey="name"
                   cx="50%"
@@ -75,7 +82,7 @@ function WelcomeAdmin() {
                   outerRadius={80}
                   label
                 >
-                  {statusData.map((entry, index) => (
+                  {summary.statusBreakdown.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -89,13 +96,13 @@ function WelcomeAdmin() {
         </div>
       </div>
 
-      {/* Summary Cards - Grid to fit screen */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
         {[
-          { label: "Total Reservations", value: 128 },
-          { label: "Pending Approvals", value: 5 },
-          { label: "Registered Users", value: 342 },
-          { label: "Revenue", value: "$12,345" },
+          { label: "Total Reservations", value: summary.totalReservations },
+          { label: "Pending Approvals", value: summary.pendingApprovals },
+          { label: "Registered Users", value: summary.registeredUsers },
+          { label: "Revenue", value: `₱${summary.revenue.toLocaleString()}` },
         ].map(({ label, value }) => (
           <div
             key={label}

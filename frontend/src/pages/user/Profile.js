@@ -43,9 +43,15 @@ function Profile() {
     }
   };
 
+  const handleRemoveImage = () => {
+    setProfile((prev) => ({
+      ...prev,
+      profileImage: '',
+    }));
+  };
+
   const toggleEdit = () => {
     if (editing) {
-      // Save profile to localStorage when exiting edit mode
       localStorage.setItem('userProfile', JSON.stringify(profile));
     }
     setEditing((prev) => !prev);
@@ -64,21 +70,18 @@ function Profile() {
   }, []);
 
   useEffect(() => {
-  const fetchReservationCount = async () => {
-    try {
-      const res = await axios.get('http://localhost:5000/api/reservations/count');
-      setReservationCount(res.data.count);
+    const fetchReservationCount = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/reservations/count');
+        setReservationCount(res.data.count);
+        localStorage.setItem('reservationCount', res.data.count);
+      } catch (err) {
+        console.error('Error fetching reservation count:', err);
+      }
+    };
 
-      // Optional: persist count in localStorage
-      localStorage.setItem('reservationCount', res.data.count);
-    } catch (err) {
-      console.error('Error fetching reservation count:', err);
-    }
-  };
-
-  fetchReservationCount();
-}, []);
-
+    fetchReservationCount();
+  }, []);
 
   return (
     <div className="p-6 max-w-4xl mx-auto bg-gray-50 flex flex-col min-h-screen">
@@ -106,7 +109,7 @@ function Profile() {
           </div>
         </div>
 
-        {/* Profile Picture Upload */}
+        {/* Profile Picture Upload & Remove */}
         {editing && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -124,6 +127,14 @@ function Profile() {
                 hover:file:bg-indigo-200
                 focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
+            {profile.profileImage && (
+              <button
+                onClick={handleRemoveImage}
+                className="mt-2 text-red-600 text-sm font-medium hover:underline focus:outline-none"
+              >
+                Remove Profile Picture
+              </button>
+            )}
           </div>
         )}
 

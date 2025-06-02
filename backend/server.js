@@ -208,6 +208,59 @@ app.get('/api/reservations/count', (req, res) => {
   });
 });
 
+app.get("/api/admin/dashboard-summary", (req, res) => {
+  const summary = {
+    totalReservations: 0,
+    pendingApprovals: 0,
+    registeredUsers: 0,
+    revenue: 0,
+    weeklyReservations: [], // For bar chart
+    statusBreakdown: [],     // For pie chart
+  };
+
+  db.query("SELECT COUNT(*) AS total FROM reservations", (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    summary.totalReservations = results[0].total;
+    summary.revenue = summary.totalReservations * 500;
+
+    db.query("SELECT COUNT(*) AS pending FROM reservations WHERE status = 'pending'", (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      summary.pendingApprovals = results[0].pending;
+
+      db.query("SELECT COUNT(*) AS users FROM users", (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        summary.registeredUsers = results[0].users;
+
+        // Pie chart data
+        db.query(
+          `SELECT status AS name, COUNT(*) AS value FROM reservations GROUP BY status`,
+          (err, statusResults) => {
+            if (err) return res.status(500).json({ error: err.message });
+            summary.statusBreakdown = statusResults;
+
+            // Bar chart data
+            db.query(
+              `SELECT 
+                 DAYNAME(date) AS day, 
+                 COUNT(*) AS reservations 
+               FROM reservations 
+               WHERE date >= CURDATE() - INTERVAL 7 DAY 
+               GROUP BY DAYNAME(date)
+               ORDER BY FIELD(DAYNAME(date), 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')`,
+              (err, weekResults) => {
+                if (err) return res.status(500).json({ error: err.message });
+                summary.weeklyReservations = weekResults;
+
+                res.json(summary);
+              }
+            );
+          }
+        );
+      });
+    });
+  });
+});
+
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

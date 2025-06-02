@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import img1 from "../../assets/01.jpg";
 import img2 from "../../assets/02.jpg";
 import img3 from "../../assets/03.jpg";
@@ -66,8 +66,11 @@ const menuItems = {
   ],
 };
 
+const bestSellerIds = new Set([1, 6, 11, 21, 31]); // example best sellers by id
 
 function WelcomeUser() {
+  const [activeCategory, setActiveCategory] = useState("Drinks");
+
   return (
     <div className="min-h-screen bg-white text-black font-sans px-6 md:px-12 py-12 mx-auto">
       <header className="mt-3 mb-10 text-center">
@@ -85,13 +88,14 @@ function WelcomeUser() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 overflow-y-auto flex-grow">
             {photos.map((photo) => (
-                <img
-                  src={photo.src}
-                  alt={photo.alt}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                  draggable={false}
-                />
+              <img
+                key={photo.id}
+                src={photo.src}
+                alt={photo.alt}
+                className="w-full h-full object-cover rounded-lg shadow-md"
+                loading="lazy"
+                draggable={false}
+              />
             ))}
           </div>
         </section>
@@ -101,24 +105,49 @@ function WelcomeUser() {
           <h2 className="text-3xl font-semibold mb-8 border-b border-gray-300 pb-2 text-center uppercase">
             Menu
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-5 overflow-y-auto flex-grow">
-            {Object.entries(menuItems).map(([category, items]) => (
-              <div key={category} className="flex flex-col">
-                <h3 className="text-lg font-medium mb-6 text-center uppercase text-gray-900">
-                  {category}
-                </h3>
-                <div className="space-y-6">
-                  {items.map((item) => (
-                    <article
-                      key={item.id}
-                      className="p-4 rounded border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+
+          {/* Category Tabs */}
+          <div className="flex justify-center gap-4 mb-6 flex-wrap">
+            {Object.keys(menuItems).map((category) => (
+              <button
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={`px-4 py-2 rounded-full text-sm font-medium border ${
+                  activeCategory === category
+                    ? "bg-black text-white border-black"
+                    : "bg-white text-black border-gray-300 hover:bg-gray-100"
+                } transition-all duration-200`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+
+          {/* Menu Items */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto flex-grow pr-2">
+            {menuItems[activeCategory].map((item) => (
+              <div
+                key={item.id}
+                className="backdrop-blur-md bg-white/70 border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                <h4 className="text-lg font-semibold mb-1 flex items-center gap-2">
+                  {item.name}
+                  {bestSellerIds.has(item.id) && (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      height="20px"
+                      viewBox="0 -960 960 960"
+                      width="20px"
+                      fill="#BB271A"
+                      aria-label="Best Seller"
+                      role="img"
                     >
-                      <h4 className="font-semibold text-base mb-1">{item.name}</h4>
-                      <p className="text-gray-600 text-sm mb-2">{item.description}</p>
-                      <p className="font-semibold text-sm">{item.price}</p>
-                    </article>
-                  ))}
-                </div>
+                      <path d="m387-412 35-114-92-74h114l36-112 36 112h114l-93 74 35 114-92-71-93 71ZM240-40v-309q-38-42-59-96t-21-115q0-134 93-227t227-93q134 0 227 93t93 227q0 61-21 115t-59 96v309l-240-80-240 80Zm240-280q100 0 170-70t70-170q0-100-70-170t-170-70q-100 0-170 70t-70 170q0 100 70 170t170 70ZM320-159l160-41 160 41v-124q-35 20-75.5 31.5T480-240q-44 0-84.5-11.5T320-283v124Zm160-62Z" />
+                    </svg>
+                  )}
+                </h4>
+                <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                <p className="text-base font-medium">{item.price}</p>
               </div>
             ))}
           </div>
