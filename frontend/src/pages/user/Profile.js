@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 function Profile() {
-  const [editing, setEditing] = useState(false); // Editable by default
+  const [editing, setEditing] = useState(false);
   const [profile, setProfile] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
+    name: 'Dexter Ochavillo',
+    email: 'dexterrochavilloo@gmail.com',
+    phone: '09668932298',
+    address: 'Blk 11 Lot 64 Phase 1 Extension',
     profileImage: '',
   });
 
@@ -42,12 +43,42 @@ function Profile() {
     }
   };
 
-  const toggleEdit = () => setEditing((prev) => !prev);
+  const toggleEdit = () => {
+    if (editing) {
+      // Save profile to localStorage when exiting edit mode
+      localStorage.setItem('userProfile', JSON.stringify(profile));
+    }
+    setEditing((prev) => !prev);
+  };
 
   useEffect(() => {
-    // Example: fetch reservation count from API or context
-    // setReservationCount(12);
+    const savedProfile = localStorage.getItem('userProfile');
+    if (savedProfile) {
+      setProfile(JSON.parse(savedProfile));
+    }
+
+    const savedCount = localStorage.getItem('reservationCount');
+    if (savedCount) {
+      setReservationCount(parseInt(savedCount, 10));
+    }
   }, []);
+
+  useEffect(() => {
+  const fetchReservationCount = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/reservations/count');
+      setReservationCount(res.data.count);
+
+      // Optional: persist count in localStorage
+      localStorage.setItem('reservationCount', res.data.count);
+    } catch (err) {
+      console.error('Error fetching reservation count:', err);
+    }
+  };
+
+  fetchReservationCount();
+}, []);
+
 
   return (
     <div className="p-6 max-w-4xl mx-auto bg-gray-50 flex flex-col min-h-screen">
@@ -70,19 +101,7 @@ function Profile() {
             )}
           </div>
           <div className="flex-1">
-            {editing ? (
-              <input
-                type="text"
-                name="name"
-                placeholder="Full Name"
-                value={profile.name}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-lg font-medium placeholder-gray-400
-                  focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition"
-              />
-            ) : (
-              <h2 className="text-2xl font-bold text-gray-900">{profile.name || '-'}</h2>
-            )}
+            <h2 className="text-2xl font-bold text-gray-900">{profile.name}</h2>
             <p className="mt-1 text-indigo-600 font-semibold">{membership}</p>
           </div>
         </div>
@@ -110,28 +129,47 @@ function Profile() {
 
         {/* Other Fields */}
         <div className="grid grid-cols-1 gap-6">
-          {[
-            { label: 'Email', name: 'email', type: 'email' },
-            { label: 'Phone', name: 'phone', type: 'tel' },
-            { label: 'Address', name: 'address', type: 'text' },
-          ].map(({ label, name, type }) => (
-            <div key={name}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-              {editing ? (
-                <input
-                  type={type}
-                  name={name}
-                  placeholder={`Enter ${label.toLowerCase()}`}
-                  value={profile[name]}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 placeholder-gray-400
-                    focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition"
-                />
-              ) : (
-                <p className="text-gray-900">{profile[name] || '-'}</p>
-              )}
-            </div>
-          ))}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <p className="text-gray-900">{profile.name}</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <p className="text-gray-900">{profile.email}</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+            {editing ? (
+              <input
+                type="tel"
+                name="phone"
+                value={profile.phone}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 placeholder-gray-400
+                  focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition"
+              />
+            ) : (
+              <p className="text-gray-900">{profile.phone || '-'}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+            {editing ? (
+              <input
+                type="text"
+                name="address"
+                value={profile.address}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 placeholder-gray-400
+                  focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition"
+              />
+            ) : (
+              <p className="text-gray-900">{profile.address || '-'}</p>
+            )}
+          </div>
         </div>
 
         {/* Reservation Count */}

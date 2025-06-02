@@ -13,7 +13,7 @@ function UserHome() {
       </header>
 
       {/* Bottom: 85% content area, no scroll */}
-      <main className="h-[85%] bg-gray-50 px-6 py-4">
+      <main className="h-[85%] bg-gray-50">
         <Outlet />
       </main>
     </div>

@@ -196,6 +196,19 @@ app.get('/api/users/role/client', (req, res) => {
   });
 });
 
+// Return total reservation count (not filtered by user)
+app.get('/api/reservations/count', (req, res) => {
+  const sql = 'SELECT COUNT(*) AS count FROM reservations';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ error: 'Query failed' });
+    }
+    res.json({ count: results[0].count });
+  });
+});
+
+
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
